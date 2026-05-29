@@ -4,13 +4,11 @@ import "fmt"
 
 const MaksData = 100
 
-// 1. Struct paling dalam
 type Data struct {
 	RefleksiDiri string
 	Skor         int
 }
 
-// 2. Struct isi tiap user
 type TipeC struct {
 	SelfAssessment     [10]Data
 	IDPengguna         int64
@@ -19,7 +17,6 @@ type TipeC struct {
 	n                  int
 }
 
-// 3. Struct terluar
 type TipeB struct {
 	C [MaksData]TipeC
 	n int
@@ -68,7 +65,6 @@ func main() {
 	}
 }
 
-// --- HELPER MENCARI INDEKS ---
 func cariIndeks(B TipeB, id int64) int {
 	for i := 0; i < B.n; i++ {
 		if B.C[i].IDPengguna == id { return i }
@@ -76,7 +72,6 @@ func cariIndeks(B TipeB, id int64) int {
 	return -1
 }
 
-// --- HELPER KUESIONER OTOMATIS ---
 func hitungSkorKuesioner() int {
 	var totalSkor, jawaban int
 	pertanyaan := []string{
@@ -99,16 +94,13 @@ func hitungSkorKuesioner() int {
 			fmt.Println("-> Input salah! Masukkan angka 1 sampai 5.")
 		}
 	}
-	// Rumus Konversi ke 0-100
 	return ((totalSkor - 5) * 100) / 20
 }
 
-// --- FUNGSI CRUD ---
 func tambahData(B *TipeB) {
 	if B.n >= MaksData { fmt.Println("Kapasitas Penuh!"); return }
 	idx := B.n
 	
-	// Kuesioner wajib ditaruh di AWAL sebelum input ID
 	fmt.Println("\n[WAJIB] Silakan isi kuesioner (Skala 1-5) terlebih dahulu:")
 	skorOtomatis := hitungSkorKuesioner()
 	
@@ -148,7 +140,6 @@ func editData(B *TipeB) {
 	fmt.Print("Masukkan ID diedit: "); fmt.Scan(&id)
 	if idx := cariIndeks(*B, id); idx != -1 {
 		
-		// Kuesioner wajib ditaruh di AWAL saat edit
 		fmt.Println("\n[WAJIB] Silakan isi ulang kuesioner untuk update skor:")
 		skorBaru := hitungSkorKuesioner() 
 		B.C[idx].SelfAssessment[0].Skor = skorBaru
@@ -172,7 +163,6 @@ func hapusData(B *TipeB) {
 	} else { fmt.Println("Data tidak ada!") }
 }
 
-// --- FUNGSI SEARCHING ---
 func cariSeq(B TipeB) {
 	var id int64
 	fmt.Print("Cari ID: "); fmt.Scan(&id)
@@ -194,7 +184,6 @@ func cariBin(B TipeB) {
 	} else { fmt.Println("Data tidak ada.") }
 }
 
-// --- FUNGSI SORTING ---
 func sortSkor(B *TipeB) {
 	for i := 0; i < B.n-1; i++ {
 		m := i
