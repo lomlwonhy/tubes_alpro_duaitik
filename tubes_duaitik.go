@@ -2,207 +2,319 @@ package main
 
 import "fmt"
 
-const MaksData = 100
 
-type Data struct {
-	RefleksiDiri string
-	Skor         int
+type Assessment struct {
+	ID        int
+	UserID    string
+	Tanggal   string 
+	SkorTotal int
+	Kategori  string
 }
 
-type TipeC struct {
-	SelfAssessment     [10]Data
-	IDPengguna         int64
-	SkorSelfAssessment int
-	Date               string
-	n                  int
+const MAX_DATA = 100
+var daftarAsesmen [MAX_DATA]Assessment
+var jumlahData int = 0
+var nextID int = 1
+
+func tambahAsesmen(userID string, tanggal string, q1, q2, q3, q4, q5 int) {
+	if jumlahData >= MAX_DATA {
+		fmt.Println("[Error] Kapasitas penyimpanan riwayat sudah penuh!")
+		return
+	}
+	
+	skor := q1 + q2 + q3 + q4 + q5
+	kat := "Sehat"
+	if skor > 18 {
+		kat = "Stres Berat"
+	} else if skor > 10 {
+		kat = "Stres Ringan"
+	}
+
+	fmt.Printf("\n➜ HASIL ASESMEN: Skor Total = %d | Kategori = %s\n", skor, kat)
+
+	daftarAsesmen[jumlahData] = Assessment{
+		ID:        nextID,
+		UserID:    userID,
+		Tanggal:   tanggal, 
+		SkorTotal: skor,
+		Kategori:  kat,
+	}
+	nextID++
+	jumlahData++
+	fmt.Println("Data assessment berhasil ditambahkan ke dalam sistem!")
 }
 
-type TipeB struct {
-	C [MaksData]TipeC
-	n int
+func tampilkanSemua() {
+	if jumlahData == 0 {
+		fmt.Println("Belum ada riwayat data asesmen.")
+		return
+	}
+	fmt.Println("\n=================== DAFTAR RIWAYAT ASESMEN ===================")
+	for i := 0; i < jumlahData; i++ {
+		a := daftarAsesmen[i]
+		fmt.Printf("ID: %-3d | User: %-6s | Tgl: %-10s | Skor Total: %-2d | Status: %s\n", 
+			a.ID, a.UserID, a.Tanggal, a.SkorTotal, a.Kategori)
+	}
 }
 
-var B TipeB
+func ubahAsesmen(id int, newUserID string, newTanggal string, q1, q2, q3, q4, q5 int) {
+	idx := -1
+	for i := 0; i < jumlahData; i++ {
+		if daftarAsesmen[i].ID == id {
+			idx = i
+			break
+		}
+	}
+
+	if idx == -1 {
+		fmt.Println("Data ID tidak ditemukan! Gagal mengubah data.")
+		return
+	}
+
+	skor := q1 + q2 + q3 + q4 + q5
+	kat := "Sehat"
+	if skor > 18 {
+		kat = "Stres Berat"
+	} else if skor > 10 {
+		kat = "Stres Ringan"
+	}
+
+	fmt.Printf("\n➜ HASIL UPDATE ASESMEN: Skor Total Baru = %d | Kategori = %s\n", skor, kat)
+
+	daftarAsesmen[idx].UserID = newUserID
+	daftarAsesmen[idx].Tanggal = newTanggal
+	daftarAsesmen[idx].SkorTotal = skor
+	daftarAsesmen[idx].Kategori = kat
+
+	fmt.Println("Data assessment berhasil diperbarui!")
+}
+
+func hapusAsesmen(id int) {
+	idx := -1
+	for i := 0; i < jumlahData; i++ {
+		if daftarAsesmen[i].ID == id {
+			idx = i
+			break
+		}
+	}
+	if idx == -1 {
+		fmt.Println("Data ID tidak ditemukan!")
+		return
+	}
+	
+	for i := idx; i < jumlahData-1; i++ {
+		daftarAsesmen[i] = daftarAsesmen[i+1]
+	}
+	jumlahData--
+	fmt.Println("Data assessment berhasil dihapus dari sistem!")
+}
+
+func cariBerdasarkanUser(userID string) {
+	ditemukan := false
+	fmt.Printf("\n--- Hasil Pencarian Sequential Search untuk User: %s ---\n", userID)
+	for i := 0; i < jumlahData; i++ {
+		if daftarAsesmen[i].UserID == userID {
+			a := daftarAsesmen[i]
+			fmt.Printf("[Ketemu] ID: %d | Skor Total: %d | Status Kesehatan: %s\n", a.ID, a.SkorTotal, a.Kategori)
+			ditemukan = true
+		}
+	}
+	if !ditemukan { 
+		fmt.Println("Data dengan User ID tersebut tidak ditemukan.") 
+	}
+}
+
+func binarySearchUser(targetUserID string) {
+	if jumlahData == 0 {
+		fmt.Println("Belum ada data untuk dicari.")
+		return
+	}
+
+	for i := 1; i < jumlahData; i++ {
+		key := daftarAsesmen[i]
+		j := i - 1
+		for j >= 0 && daftarAsesmen[j].UserID > key.UserID {
+			daftarAsesmen[j+1] = daftarAsesmen[j]
+			j--
+		}
+		daftarAsesmen[j+1] = key
+	}
+
+	low, high := 0, jumlahData-1
+	idxKetemu := -1
+	
+	for low <= high {
+		mid := (low + high) / 2
+		if daftarAsesmen[mid].UserID == targetUserID {
+			idxKetemu = mid
+			break 
+		} else if daftarAsesmen[mid].UserID < targetUserID {
+			low = mid + 1
+		} else {
+			high = mid - 1
+		}
+	}
+
+	if idxKetemu != -1 {
+		a := daftarAsesmen[idxKetemu]
+		fmt.Printf("\n[Ketemu via Binary Search] ID: %d | User ID: %s | Tgl: %s | Skor: %d | Status: %s\n", 
+			a.ID, a.UserID, a.Tanggal, a.SkorTotal, a.Kategori)
+	} else {
+		fmt.Println("Data dengan User ID tersebut tidak dapat ditemukan.")
+	}
+}
+
+func selectionSortByTanggal() {
+	for i := 0; i < jumlahData-1; i++ {
+		minIdx := i
+		for j := i + 1; j < jumlahData; j++ {
+			if daftarAsesmen[j].Tanggal < daftarAsesmen[minIdx].Tanggal {
+				minIdx = j
+			}
+		}
+		daftarAsesmen[i], daftarAsesmen[minIdx] = daftarAsesmen[minIdx], daftarAsesmen[i]
+	}
+	fmt.Println("Riwayat berhasil diurutkan berdasarkan tanggal secara Ascending (Selection Sort).")
+}
+
+func insertionSortBySkor() {
+	for i := 1; i < jumlahData; i++ {
+		key := daftarAsesmen[i]
+		j := i - 1
+		for j >= 0 && daftarAsesmen[j].SkorTotal < key.SkorTotal {
+			daftarAsesmen[j+1] = daftarAsesmen[j]
+			j--
+		}
+		daftarAsesmen[j+1] = key
+	}
+	fmt.Println("Riwayat berhasil diurutkan berdasarkan skor tertinggi ke terendah (Insertion Sort).")
+}
+
+func tampilkanStatistik() {
+	if jumlahData == 0 {
+		fmt.Println("Belum ada data riwayat untuk dianalisis.")
+		return
+	}
+	fmt.Println("\n================ LAPORAN STATISTIK KESEHATAN MENTAL ================")
+	
+	fmt.Println("a. 5 Hasil Terakhir Self-Assessment Pengguna:")
+	start := 0
+	if jumlahData > 5 { 
+		start = jumlahData - 5 
+	}
+	for i := jumlahData - 1; i >= start; i-- {
+		fmt.Printf("   - ID: %d | User: %s | Skor: %d (%s)\n", 
+			daftarAsesmen[i].ID, daftarAsesmen[i].UserID, daftarAsesmen[i].SkorTotal, daftarAsesmen[i].Kategori)
+	}
+	
+	totalSkor := 0
+	for i := 0; i < jumlahData; i++ { 
+		totalSkor += daftarAsesmen[i].SkorTotal 
+	}
+	rataRata := float64(totalSkor) / float64(jumlahData)
+	fmt.Printf("b. Rata-rata skor self-assessment pengguna: %.2f\n", rataRata)
+}
 
 func main() {
-	var pilihan, sub int
+	var pilihan, targetInt int
+	var targetStr, targetTanggal string 
+
+	pertanyaan := [5]string{
+		"1. Seberapa sering Anda merasa gugup atau cemas tanpa alasan yang jelas?",
+		"2. Seberapa sering Anda merasa begitu gelisah sehingga tidak bisa duduk tenang?",
+		"3. Seberapa sering Anda merasa putus asa atau tidak memiliki harapan?",
+		"4. Seberapa sering Anda merasa bahwa segala sesuatu membutuhkan usaha yang sangat berat?",
+		"5. Seberapa sering Anda merasa sangat sedih sehingga tidak ada yang bisa menghibur Anda?",
+	}
+
 	for {
-		fmt.Println("\n=======================================")
-		fmt.Println("   SISTEM MANAJEMEN KESEHATAN MENTAL   ")
-		fmt.Println("=======================================")
-		fmt.Println("1. Input Data Assessment")
-		fmt.Println("2. Cetak Laporan Data")
-		fmt.Println("3. Kelola Data (Edit / Hapus)")
-		fmt.Println("4. Cari Data (Sequential / Binary)")
-		fmt.Println("5. Urutkan berdasarkan Skor (Desc)")
-		fmt.Println("6. Urutkan berdasarkan Tanggal (Asc)")
-		fmt.Println("7. Exit Program")
-		fmt.Println("=======================================")
-		fmt.Print("Pilih menu (1-7): ")
+		fmt.Println("\n=============================================")
+		fmt.Println("          APLIKASI GO-MENTAL (CLI)           ")
+		fmt.Println("=============================================")
+		fmt.Println("1. Tampilkan Semua Riwayat Asesmen")
+		fmt.Println("2. Tambah Data Asesmen Baru")
+		fmt.Println("3. Ubah Data Asesmen Berdasarkan ID")
+		fmt.Println("4. Hapus Data Asesmen Berdasarkan ID")
+		fmt.Println("5. Cari User ID (Sequential Search)")
+		fmt.Println("6. Cari User ID (Binary Search)")
+		fmt.Println("7. Urutkan Berdasarkan Tanggal (Selection Sort)")
+		fmt.Println("8. Urutkan Berdasarkan Skor Total (Insertion Sort)")
+		fmt.Println("9. Tampilkan Laporan Statistik & Rata-rata")
+		fmt.Println("10. Keluar Aplikasi")
+		fmt.Print("Pilih Opsi Menu (1-10): ")
 		fmt.Scan(&pilihan)
 
 		switch pilihan {
 		case 1:
-			tambahData(&B)
+			tampilkanSemua()
 		case 2:
-			cetakData(B)
+			fmt.Print("Masukkan User ID Baru: ")
+			fmt.Scan(&targetStr)
+			fmt.Print("Masukkan Tanggal (contoh: 2026-05-27): ")
+			fmt.Scan(&targetTanggal)
+			
+			var q [5]int
+			fmt.Println("\n--- JAWAB PERTANYAAN (Skala 1: Tidak Pernah, s/d 5: Selalu) ---")
+			for i := 0; i < 5; i++ {
+				for {
+					fmt.Println(pertanyaan[i])
+					fmt.Print("Jawaban Anda (1-5): ")
+					fmt.Scan(&q[i])
+					if q[i] >= 1 && q[i] <= 5 { break }
+					fmt.Println("Input tidak valid! Harap masukkan angka antara 1 sampai 5.\n")
+				}
+				fmt.Println() 
+			}
+			tambahAsesmen(targetStr, targetTanggal, q[0], q[1], q[2], q[3], q[4])
+
 		case 3:
-			fmt.Print("-> Aksi: 1.Edit | 2.Hapus ? "); fmt.Scan(&sub)
-			if sub == 1 { editData(&B) } else if sub == 2 { hapusData(&B) } else { fmt.Println("Pilihan salah!") }
+			fmt.Print("Masukkan ID Data yang ingin Anda ubah: ")
+			fmt.Scan(&targetInt)
+			
+			fmt.Print("Masukkan User ID Pengganti: ")
+			fmt.Scan(&targetStr)
+			fmt.Print("Masukkan Tanggal Baru (contoh: 2026-05-27): ")
+			fmt.Scan(&targetTanggal)
+			
+			var q [5]int
+			fmt.Println("\n--- ISI KEMBALI KUESIONER BARU (Skala 1-5) ---")
+			for i := 0; i < 5; i++ {
+				for {
+					fmt.Println(pertanyaan[i])
+					fmt.Print("Jawaban Baru (1-5): ")
+					fmt.Scan(&q[i])
+					if q[i] >= 1 && q[i] <= 5 { break }
+					fmt.Println("Input tidak valid! Masukkan angka antara 1 sampai 5.\n")
+				}
+				fmt.Println()
+			}
+			ubahAsesmen(targetInt, targetStr, targetTanggal, q[0], q[1], q[2], q[3], q[4])
+
 		case 4:
-			fmt.Print("-> Metode: 1.Sequential | 2.Binary ? "); fmt.Scan(&sub)
-			if sub == 1 { cariSeq(B) } else if sub == 2 { cariBin(B) } else { fmt.Println("Pilihan salah!") }
+			fmt.Print("Masukkan ID Data yang akan dihapus: ")
+			fmt.Scan(&targetInt)
+			hapusAsesmen(targetInt)
 		case 5:
-			sortSkor(&B)
+			fmt.Print("Masukkan User ID yang ingin dicari: ")
+			fmt.Scan(&targetStr)
+			cariBerdasarkanUser(targetStr)
 		case 6:
-			sortTanggal(&B)
+			fmt.Print("Masukkan User ID yang ingin dicari (Binary Search): ")
+			fmt.Scan(&targetStr)
+			binarySearchUser(targetStr)
 		case 7:
-			fmt.Println("Program selesai. Jangan lupa istirahat!")
+			selectionSortByTanggal()
+			tampilkanSemua()
+		case 8:
+			insertionSortBySkor()
+			tampilkanSemua()
+		case 9:
+			tampilkanStatistik()
+		case 10:
+			fmt.Println("Terima kasih telah menggunakan aplikasi Go-Mental!")
 			return
 		default:
-			fmt.Println("Pilihan menu tidak valid!")
+			fmt.Println("Pilihan menu tidak valid, silakan coba kembali.")
 		}
 	}
-}
-
-func cariIndeks(B TipeB, id int64) int {
-	for i := 0; i < B.n; i++ {
-		if B.C[i].IDPengguna == id { return i }
-	}
-	return -1
-}
-
-func hitungSkorKuesioner() int {
-	var totalSkor, jawaban int
-	pertanyaan := []string{
-		"1. Cemas mikirin tugas/Tubes?",
-		"2. Pola tidur mengalami penurunan kualitas?",
-		"3. Merasa hampa atau kosong setelah deadline selesai?",
-		"4. Pusing mikirin error kodingan?",
-		"5. Malas berinteraksi (terjadi penurunan kepekaan sosial)?",
-	}
-
-	for _, p := range pertanyaan {
-		fmt.Println(p)
-		for {
-			fmt.Print("Jawaban: ")
-			fmt.Scan(&jawaban)
-			if jawaban >= 1 && jawaban <= 5 {
-				totalSkor += jawaban
-				break
-			}
-			fmt.Println("-> Input salah! Masukkan angka 1 sampai 5.")
-		}
-	}
-	return ((totalSkor - 5) * 100) / 20
-}
-
-func tambahData(B *TipeB) {
-	if B.n >= MaksData { fmt.Println("Kapasitas Penuh!"); return }
-	idx := B.n
-	
-	fmt.Println("\n[WAJIB] Silakan isi kuesioner (Skala 1-5) terlebih dahulu:")
-	skorOtomatis := hitungSkorKuesioner()
-	
-	B.C[idx].SelfAssessment[0].Skor = skorOtomatis
-	B.C[idx].SkorSelfAssessment = skorOtomatis
-
-	fmt.Printf("\n-> Kuesioner Selesai! Skor kamu: %d\n", skorOtomatis)
-	fmt.Print("-> Masukkan ID(12Digit) & Tgl(YYYYMMDD) (Spasi): ")
-	fmt.Scan(&B.C[idx].IDPengguna, &B.C[idx].Date)
-	
-	fmt.Print("-> Kesimpulan/Refleksi Utama (Tanpa spasi): ")
-	fmt.Scan(&B.C[idx].SelfAssessment[0].RefleksiDiri)
-
-	B.C[idx].n = 1
-	B.n++
-	
-	fmt.Println("-> Data berhasil tersimpan!")
-}
-
-func cetakData(B TipeB) {
-	if B.n == 0 { fmt.Println("Data kosong."); return }
-	fmt.Printf("| %-14s | %-8s | %-16s | %-4s | %-26s |\n", "ID Pengguna", "Tanggal", "Refleksi", "Skor", "Tingkat Stres")
-	for i := 0; i < B.n; i++ {
-		status := "Stres berat! Cari bantuan"
-		if B.C[i].SkorSelfAssessment <= 40 {
-			status = "Aman, stres rendah"
-		} else if B.C[i].SkorSelfAssessment <= 70 {
-			status = "Stres sedang, butuh rehat"
-		}
-		fmt.Printf("| %-14d | %-8s | %-16s | %-4d | %-26s |\n",
-			B.C[i].IDPengguna, B.C[i].Date, B.C[i].SelfAssessment[0].RefleksiDiri, B.C[i].SkorSelfAssessment, status)
-	}
-}
-
-func editData(B *TipeB) {
-	var id int64
-	fmt.Print("Masukkan ID diedit: "); fmt.Scan(&id)
-	if idx := cariIndeks(*B, id); idx != -1 {
-		
-		fmt.Println("\n[WAJIB] Silakan isi ulang kuesioner untuk update skor:")
-		skorBaru := hitungSkorKuesioner() 
-		B.C[idx].SelfAssessment[0].Skor = skorBaru
-		B.C[idx].SkorSelfAssessment = skorBaru
-		
-		fmt.Printf("\n-> Skor Terupdate: %d\n", skorBaru)
-		fmt.Print("-> Tgl & Refleksi Baru (Spasi): ")
-		fmt.Scan(&B.C[idx].Date, &B.C[idx].SelfAssessment[0].RefleksiDiri)
-		
-		fmt.Println("-> Update sukses!")
-	} else { fmt.Println("Data tidak ada!") }
-}
-
-func hapusData(B *TipeB) {
-	var id int64
-	fmt.Print("Masukkan ID dihapus: "); fmt.Scan(&id)
-	if idx := cariIndeks(*B, id); idx != -1 {
-		for i := idx; i < B.n-1; i++ { B.C[i] = B.C[i+1] }
-		B.n--
-		fmt.Println("Hapus sukses!")
-	} else { fmt.Println("Data tidak ada!") }
-}
-
-func cariSeq(B TipeB) {
-	var id int64
-	fmt.Print("Cari ID: "); fmt.Scan(&id)
-	if idx := cariIndeks(B, id); idx != -1 {
-		fmt.Printf("Ketemu! Tgl: %s | Refleksi: %s | Skor: %d\n", B.C[idx].Date, B.C[idx].SelfAssessment[0].RefleksiDiri, B.C[idx].SkorSelfAssessment)
-	} else { fmt.Println("Data tidak ada.") }
-}
-
-func cariBin(B TipeB) {
-	var id int64
-	fmt.Print("Cari ID (Pastikan urut ID dulu): "); fmt.Scan(&id)
-	kiri, kanan, posisi := 0, B.n-1, -1
-	for kiri <= kanan && posisi == -1 {
-		tengah := (kiri + kanan) / 2
-		if id < B.C[tengah].IDPengguna { kanan = tengah - 1 } else if id > B.C[tengah].IDPengguna { kiri = tengah + 1 } else { posisi = tengah }
-	}
-	if posisi != -1 {
-		fmt.Printf("Ketemu! Tgl: %s | Refleksi: %s | Skor: %d\n", B.C[posisi].Date, B.C[posisi].SelfAssessment[0].RefleksiDiri, B.C[posisi].SkorSelfAssessment)
-	} else { fmt.Println("Data tidak ada.") }
-}
-
-func sortSkor(B *TipeB) {
-	for i := 0; i < B.n-1; i++ {
-		m := i
-		for j := i + 1; j < B.n; j++ {
-			if B.C[j].SkorSelfAssessment > B.C[m].SkorSelfAssessment { m = j }
-		}
-		B.C[i], B.C[m] = B.C[m], B.C[i]
-	}
-	fmt.Println("Selesai diurutkan dari skor terbesar.")
-}
-
-func sortTanggal(B *TipeB) {
-	for i := 1; i < B.n; i++ {
-		key, j := B.C[i], i-1
-		for j >= 0 && key.Date < B.C[j].Date {
-			B.C[j+1] = B.C[j]
-			j--
-		}
-		B.C[j+1] = key
-	}
-	fmt.Println("Selesai diurutkan dari tanggal terlama.")
 }
