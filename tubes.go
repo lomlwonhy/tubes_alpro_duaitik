@@ -2,7 +2,6 @@ package main
 
 import "fmt"
 
-
 type Assessment struct {
 	ID        int
 	UserID    string
@@ -18,7 +17,7 @@ var nextID int = 1
 
 func tambahAsesmen(userID string, tanggal string, q1, q2, q3, q4, q5 int) {
 	if jumlahData >= MAX_DATA {
-		fmt.Println("[Error] Kapasitas penyimpanan riwayat sudah penuh!")
+		fmt.Println("[ERROR] Kapasitas penyimpanan riwayat sudah penuh!")
 		return
 	}
 	
@@ -30,7 +29,7 @@ func tambahAsesmen(userID string, tanggal string, q1, q2, q3, q4, q5 int) {
 		kat = "Stres Ringan"
 	}
 
-	fmt.Printf("\n➜ HASIL ASESMEN: Skor Total = %d | Kategori = %s\n", skor, kat)
+	fmt.Printf("\n-> HASIL ASESMEN: Skor Total = %d | Kategori = %s\n", skor, kat)
 
 	daftarAsesmen[jumlahData] = Assessment{
 		ID:        nextID,
@@ -41,7 +40,7 @@ func tambahAsesmen(userID string, tanggal string, q1, q2, q3, q4, q5 int) {
 	}
 	nextID++
 	jumlahData++
-	fmt.Println("Data assessment berhasil ditambahkan ke dalam sistem!")
+	fmt.Println("[SUKSES] Data assessment berhasil ditambahkan ke dalam sistem!")
 }
 
 func tampilkanSemua() {
@@ -67,7 +66,7 @@ func ubahAsesmen(id int, newUserID string, newTanggal string, q1, q2, q3, q4, q5
 	}
 
 	if idx == -1 {
-		fmt.Println("Data ID tidak ditemukan! Gagal mengubah data.")
+		fmt.Println("[ERROR] Data ID tidak ditemukan! Gagal mengubah data.")
 		return
 	}
 
@@ -79,14 +78,14 @@ func ubahAsesmen(id int, newUserID string, newTanggal string, q1, q2, q3, q4, q5
 		kat = "Stres Ringan"
 	}
 
-	fmt.Printf("\n➜ HASIL UPDATE ASESMEN: Skor Total Baru = %d | Kategori = %s\n", skor, kat)
+	fmt.Printf("\n-> HASIL UPDATE ASESMEN: Skor Total Baru = %d | Kategori = %s\n", skor, kat)
 
 	daftarAsesmen[idx].UserID = newUserID
 	daftarAsesmen[idx].Tanggal = newTanggal
 	daftarAsesmen[idx].SkorTotal = skor
 	daftarAsesmen[idx].Kategori = kat
 
-	fmt.Println("Data assessment berhasil diperbarui!")
+	fmt.Println("[SUKSES] Data assessment berhasil diperbarui!")
 }
 
 func hapusAsesmen(id int) {
@@ -98,7 +97,7 @@ func hapusAsesmen(id int) {
 		}
 	}
 	if idx == -1 {
-		fmt.Println("Data ID tidak ditemukan!")
+		fmt.Println("[ERROR] Data ID tidak ditemukan!")
 		return
 	}
 	
@@ -106,7 +105,7 @@ func hapusAsesmen(id int) {
 		daftarAsesmen[i] = daftarAsesmen[i+1]
 	}
 	jumlahData--
-	fmt.Println("Data assessment berhasil dihapus dari sistem!")
+	fmt.Println("[SUKSES] Data assessment berhasil dihapus dari sistem!")
 }
 
 func cariBerdasarkanUser(userID string) {
@@ -160,7 +159,7 @@ func binarySearchUser(targetUserID string) {
 		fmt.Printf("\n[Ketemu via Binary Search] ID: %d | User ID: %s | Tgl: %s | Skor: %d | Status: %s\n", 
 			a.ID, a.UserID, a.Tanggal, a.SkorTotal, a.Kategori)
 	} else {
-		fmt.Println("Data dengan User ID tersebut tidak dapat ditemukan.")
+		fmt.Println("[ERROR] Data dengan User ID tersebut tidak dapat ditemukan.")
 	}
 }
 
@@ -174,7 +173,7 @@ func selectionSortByTanggal() {
 		}
 		daftarAsesmen[i], daftarAsesmen[minIdx] = daftarAsesmen[minIdx], daftarAsesmen[i]
 	}
-	fmt.Println("Riwayat berhasil diurutkan berdasarkan tanggal secara Ascending (Selection Sort).")
+	fmt.Println("[SUKSES] Riwayat berhasil diurutkan berdasarkan tanggal secara Ascending (Selection Sort).")
 }
 
 func insertionSortBySkor() {
@@ -187,7 +186,7 @@ func insertionSortBySkor() {
 		}
 		daftarAsesmen[j+1] = key
 	}
-	fmt.Println("Riwayat berhasil diurutkan berdasarkan skor tertinggi ke terendah (Insertion Sort).")
+	fmt.Println("[SUKSES] Riwayat berhasil diurutkan berdasarkan skor tertinggi ke terendah (Insertion Sort).")
 }
 
 func tampilkanStatistik() {
@@ -261,7 +260,7 @@ func main() {
 					fmt.Print("Jawaban Anda (1-5): ")
 					fmt.Scan(&q[i])
 					if q[i] >= 1 && q[i] <= 5 { break }
-					fmt.Println("Input tidak valid! Harap masukkan angka antara 1 sampai 5.\n")
+					fmt.Println("[ERROR] Input tidak valid! Harap masukkan angka antara 1 sampai 5.\n")
 				}
 				fmt.Println() 
 			}
@@ -284,7 +283,7 @@ func main() {
 					fmt.Print("Jawaban Baru (1-5): ")
 					fmt.Scan(&q[i])
 					if q[i] >= 1 && q[i] <= 5 { break }
-					fmt.Println("Input tidak valid! Masukkan angka antara 1 sampai 5.\n")
+					fmt.Println("[ERROR] Input tidak valid! Masukkan angka antara 1 sampai 5.\n")
 				}
 				fmt.Println()
 			}
@@ -314,7 +313,7 @@ func main() {
 			fmt.Println("Terima kasih telah menggunakan aplikasi Go-Mental!")
 			return
 		default:
-			fmt.Println("Pilihan menu tidak valid, silakan coba kembali.")
+			fmt.Println("[ERROR] Pilihan menu tidak valid, silakan coba kembali.")
 		}
 	}
 }
